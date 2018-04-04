@@ -4,11 +4,14 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -28,6 +31,7 @@ import java.io.File;
 
 public class CameraActivity extends AppCompatActivity implements View.OnClickListener, ControlView.Callback {
 
+    private static final String TAG = "xie";
     private CameraView camera;
     private ViewGroup controlPanel;
 
@@ -107,6 +111,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         if (mCaptureTime == 0) mCaptureTime = callbackTime - 300;
         if (mCaptureNativeSize == null) mCaptureNativeSize = camera.getPictureSize();
 
+        Log.d(TAG, "LEN = "+ jpeg.length);
         PicturePreviewActivity.setImage(jpeg);
         Intent intent = new Intent(CameraActivity.this, PicturePreviewActivity.class);
         intent.putExtra("delay", callbackTime - mCaptureTime);

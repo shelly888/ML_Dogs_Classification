@@ -19,10 +19,12 @@ android {
         }
     }
     buildToolsVersion '27.0.1'
+
 }
 
 dependencies {
     implementation project(':cameraview')
     implementation "com.android.support:appcompat-v7:$supportLibVersion"
     implementation "com.android.support:design:$supportLibVersion"
+    implementation files('libs/libandroid_tensorflow_inference_java.jar')
 }
