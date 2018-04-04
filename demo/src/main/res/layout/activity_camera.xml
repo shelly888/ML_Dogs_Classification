@@ -8,7 +8,7 @@
     android:layout_height="match_parent">
 
     <!-- Camera -->
-    <com.otaliastudios.cameraview.CameraView
+    <com.shelly.dogs.CameraView
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/camera"
         android:layout_width="match_parent"

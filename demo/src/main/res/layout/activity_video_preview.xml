@@ -14,7 +14,7 @@
             android:layout_width="match_parent"
             android:layout_height="200dp"/>
 
-        <com.otaliastudios.cameraview.demo.MessageView
+        <com.shelly.dogs.demo.MessageView
             android:id="@+id/actualResolution"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
