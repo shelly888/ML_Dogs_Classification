@@ -1,30 +1,34 @@
 package com.shelly.dogs.demo;
 
-import android.app.ActionBar;
+import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.shelly.dogs.CameraListener;
 import com.shelly.dogs.CameraLogger;
 import com.shelly.dogs.CameraOptions;
+import com.shelly.dogs.CameraUtils;
 import com.shelly.dogs.CameraView;
 import com.shelly.dogs.SessionType;
 import com.shelly.dogs.Size;
+import com.shelly.dogs.util.MyBosClient;
+import com.shelly.dogs.util.Utils;
 
 import java.io.File;
 
@@ -32,6 +36,8 @@ import java.io.File;
 public class CameraActivity extends AppCompatActivity implements View.OnClickListener, ControlView.Callback {
 
     private static final String TAG = "xie";
+    private static final int SELECT_PHOTO = 0x33;
+    private Context mContext;
     private CameraView camera;
     private ViewGroup controlPanel;
 
@@ -41,15 +47,19 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     // To show stuff in the callback
     private Size mCaptureNativeSize;
     private long mCaptureTime;
+    private MyBosClient mBosClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mContext = this;
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
         setContentView(R.layout.activity_camera);
-        CameraLogger.setLogLevel(CameraLogger.LEVEL_VERBOSE);
+        CameraLogger.setLogLevel(CameraLogger.LEVEL_ERROR);
         getSupportActionBar().hide();
+
+        mBosClient = MyBosClient.getBosClient();
 
         camera = findViewById(R.id.camera);
         camera.addCameraListener(new CameraListener() {
@@ -65,6 +75,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
 //        findViewById(R.id.edit).setOnClickListener(this);
         findViewById(R.id.capturePhoto).setOnClickListener(this);
+        findViewById(R.id.album).setOnClickListener(this);
 //        findViewById(R.id.captureVideo).setOnClickListener(this);
 //        findViewById(R.id.toggleCamera).setOnClickListener(this);
 
@@ -113,6 +124,15 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
         Log.d(TAG, "LEN = "+ jpeg.length);
         PicturePreviewActivity.setImage(jpeg);
+        CameraUtils.decodeBitmap(jpeg, 1000, 1000, new CameraUtils.BitmapCallback() {
+                    @Override
+                    public void onBitmapReady(Bitmap bitmap) {
+//                        String path  = Utils.saveBitmap(mContext, bitmap);
+                        String path  = Utils.saveImageToGallery(mContext, bitmap);
+                        mBosClient.sendToBos(path);
+                    }
+                });
+
         Intent intent = new Intent(CameraActivity.this, PicturePreviewActivity.class);
         intent.putExtra("delay", callbackTime - mCaptureTime);
         intent.putExtra("nativeWidth", mCaptureNativeSize.getWidth());
@@ -137,6 +157,11 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
             case R.id.capturePhoto: capturePhoto(); break;
 //            case R.id.captureVideo: captureVideo(); break;
 //            case R.id.toggleCamera: toggleCamera(); break;
+            case R.id.album:
+                getPicFromAlbum();
+                break;
+            default:
+                break;
         }
     }
 
@@ -162,6 +187,25 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         mCaptureNativeSize = camera.getPictureSize();
         message("Capturing picture...", false);
         camera.capturePicture();
+    }
+
+    private void getPicFromAlbum() {
+        Log.d("xie", "get pic from album");
+        if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions((Activity)mContext, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
+        }else {
+            openAlbum();
+        }
+    }
+
+    /**
+     * 打开相册的方法
+     * */
+    private void openAlbum() {
+        Intent intent = new Intent("android.intent.action.GET_CONTENT");
+        intent.setType("image/*");
+        startActivityForResult(intent,SELECT_PHOTO);
     }
 
     private void captureVideo() {
@@ -223,6 +267,29 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     protected void onDestroy() {
         super.onDestroy();
         camera.destroy();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case SELECT_PHOTO :
+                if (resultCode == Activity.RESULT_OK) {
+                    Log.d("xie", "select pic OK");
+                    Bitmap bitmap = Utils.toBitmap(mContext,data);
+                    String path  = Utils.saveImageToGallery(mContext, bitmap);
+                    mBosClient.sendToBos(path);
+
+                    PicturePreviewActivity.setBitmap(bitmap);
+                    Intent intent = new Intent(CameraActivity.this, PicturePreviewActivity.class);
+//                    intent.putExtra("nativeWidth", mCaptureNativeSize.getWidth());
+//                    intent.putExtra("nativeHeight", mCaptureNativeSize.getHeight());
+                    startActivity(intent);
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     @Override

@@ -27,4 +27,7 @@ dependencies {
     implementation "com.android.support:appcompat-v7:$supportLibVersion"
     implementation "com.android.support:design:$supportLibVersion"
     implementation files('libs/libandroid_tensorflow_inference_java.jar')
+    implementation files('libs/bos-android-sdk-1.0.4.jar')
+    implementation files('libs/okhttp-3.8.1.jar')
+    implementation files('libs/okio-1.13.0.jar')
 }

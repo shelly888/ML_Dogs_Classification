@@ -1,4 +1,4 @@
-package com.shelly.dogs.demo;
+package com.shelly.dogs.util;
 
 import android.content.ContentUris;
 import android.content.Context;
@@ -9,11 +9,17 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.net.Uri;
+import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 public class Utils {
 
@@ -22,12 +28,13 @@ public class Utils {
     private static int CHANNEL = 3;
     private static final int IMAGE_MEAN = 128;
     private static final float IMAGE_STD = 128;
+    private static final String SD_PATH = "/dogs/1/";
+    private static final String IN_PATH = "/dogs/2/";
 
     public static float[] bitmapToFloat(Bitmap bitmap) {
         final float[] bitmap_data = bitmapToFloatArray(bitmap);
         return  bitmap_data;
     }
-
 
     public static float getFloat(byte[] b) {
         int accum = 0;
@@ -61,7 +68,6 @@ public class Utils {
             }
         }
 
-
         // Cannot find the one match the aspect ratio, ignore the requirement
         if (optimalSize == null) {
             minDiff = Double.MAX_VALUE;
@@ -79,9 +85,9 @@ public class Utils {
     {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
-// 获取这个图片的宽和高
+        // 获取这个图片的宽和高
         Bitmap myBitmap = BitmapFactory.decodeFile(imagePath, options); //此时返回myBitmap为空
-//计算缩放比
+        //计算缩放比
         int be = (int)(options.outHeight / (float)200);
         int ys = options.outHeight % 200;//求余数
         float fe = ys / (float)200;
@@ -158,6 +164,86 @@ public class Utils {
             }
             cursor.close();
         }
+        return path;
+    }
+
+    /**
+     * 随机生产文件名
+     *
+     * @return
+     */
+    private static String generateFileName() {
+        return UUID.randomUUID().toString();
+    }
+
+    /**
+     * 保存bitmap到本地
+     *
+     * @param context
+     * @param mBitmap
+     * @return
+     */
+    public static String saveBitmap(Context context, Bitmap mBitmap) {
+        Log.d("xie", "saveBitmap......");
+        String savePath;
+        File filePic;
+        if (Environment.getExternalStorageState().equals(
+                Environment.MEDIA_MOUNTED)) {
+            savePath = SD_PATH;
+        } else {
+            savePath = context.getApplicationContext().getFilesDir()
+                    .getAbsolutePath()
+                    + IN_PATH;
+        }
+        try {
+            filePic = new File(savePath + generateFileName() + ".jpg");
+            if (!filePic.exists()) {
+                filePic.getParentFile().mkdirs();
+                filePic.createNewFile();
+            }
+            FileOutputStream fos = new FileOutputStream(filePic);
+            mBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            fos.flush();
+            fos.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return null;
+        }
+
+        return filePic.getAbsolutePath();
+    }
+
+    public static String saveImageToGallery(Context context, Bitmap bmp) {
+        // 首先保存图片
+        File appDir = new File(Environment.getExternalStorageDirectory(), "Boohee");
+        if (!appDir.exists()) {
+            appDir.mkdir();
+        }
+        String fileName = System.currentTimeMillis() + ".jpg";
+        File file = new File(appDir, fileName);
+        try {
+            FileOutputStream fos = new FileOutputStream(file);
+            bmp.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            fos.flush();
+            fos.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String path = file.getAbsolutePath();
+        // 其次把文件插入到系统图库
+        try {
+            MediaStore.Images.Media.insertImage(context.getContentResolver(),
+                    file.getAbsolutePath(), fileName, null);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        // 最后通知图库更新
+        context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse("file://" + path)));
+
         return path;
     }
 }

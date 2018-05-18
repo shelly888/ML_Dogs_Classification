@@ -31,19 +31,27 @@
 
     <!-- Controls -->
     <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:padding="16dp"
         android:orientation="horizontal"
-        android:weightSum="2">
+        android:padding="16dp"
+        android:weightSum="2"
+        app:layout_anchorGravity="left|top">
 
         <!--<ImageButton-->
-            <!--android:id="@+id/edit"-->
-            <!--android:layout_width="56dp"-->
-            <!--android:layout_height="56dp"-->
-            <!--android:background="@drawable/background"-->
-            <!--app:srcCompat="@drawable/ic_edit" />-->
+        <!--android:id="@+id/edit"-->
+        <!--android:layout_width="56dp"-->
+        <!--android:layout_height="56dp"-->
+        <!--android:background="@drawable/background"-->
+        <!--app:srcCompat="@drawable/ic_edit" />-->
+        <ImageView
+            android:id="@+id/album"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_vertical"
+            android:background="@drawable/ablum" />
 
         <Space
             android:layout_width="0dp"
@@ -62,24 +70,28 @@
             android:layout_height="1dp"
             android:layout_weight="1" />
 
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp" />
+
         <!--<ImageButton-->
-            <!--android:id="@+id/captureVideo"-->
-            <!--android:layout_width="56dp"-->
-            <!--android:layout_height="56dp"-->
-            <!--android:background="@drawable/background"-->
-            <!--app:srcCompat="@drawable/ic_video" />-->
+        <!--android:id="@+id/captureVideo"-->
+        <!--android:layout_width="56dp"-->
+        <!--android:layout_height="56dp"-->
+        <!--android:background="@drawable/background"-->
+        <!--app:srcCompat="@drawable/ic_video" />-->
 
         <!--<Space-->
-            <!--android:layout_width="0dp"-->
-            <!--android:layout_height="1dp"-->
-            <!--android:layout_weight="1" />-->
+        <!--android:layout_width="0dp"-->
+        <!--android:layout_height="1dp"-->
+        <!--android:layout_weight="1" />-->
 
         <!--<ImageButton-->
-            <!--android:id="@+id/toggleCamera"-->
-            <!--android:layout_width="56dp"-->
-            <!--android:layout_height="56dp"-->
-            <!--android:background="@drawable/background"-->
-            <!--app:srcCompat="@drawable/ic_switch" />-->
+        <!--android:id="@+id/toggleCamera"-->
+        <!--android:layout_width="56dp"-->
+        <!--android:layout_height="56dp"-->
+        <!--android:background="@drawable/background"-->
+        <!--app:srcCompat="@drawable/ic_switch" />-->
     </LinearLayout>
 
     <!-- Edit -->

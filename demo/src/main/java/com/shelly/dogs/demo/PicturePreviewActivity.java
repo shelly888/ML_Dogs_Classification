@@ -19,12 +19,17 @@ import java.lang.ref.WeakReference;
 public class PicturePreviewActivity extends Activity {
 
     private static WeakReference<byte[]> image;
+    private static WeakReference<Bitmap> bitmap;
     private static Bitmap mBitmap;
     private MLModule mlModule;
     private String output;
     private MessageView captureLatency;
     public static void setImage(@Nullable byte[] im) {
         image = im != null ? new WeakReference<>(im) : null;
+    }
+
+    public static void setBitmap(@Nullable Bitmap im) {
+        bitmap = im != null ? new WeakReference<>(im) : null;
     }
 
     @Override
@@ -41,12 +46,26 @@ public class PicturePreviewActivity extends Activity {
         final int nativeWidth = getIntent().getIntExtra("nativeWidth", 0);
         final int nativeHeight = getIntent().getIntExtra("nativeHeight", 0);
         byte[] b = image == null ? null : image.get();
-        if (b == null) {
+        Bitmap bm = bitmap == null ? null : bitmap.get();
+        if (b == null && bm == null) {
             finish();
             return;
         }
         mlModule = MLModule.getInstance(this);
 
+        if (bm != null) {
+            imageView.setImageBitmap(bm);
+            mBitmap = bm;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    output = mlModule.processDataAndGetOutput(mBitmap);
+                    Log.d("xie", "output = " + output);
+                    mHandler.sendEmptyMessage(1);
+                }
+            }).start();
+            return;
+        }
         CameraUtils.decodeBitmap(b, 1000, 1000, new CameraUtils.BitmapCallback() {
             @Override
             public void onBitmapReady(Bitmap bitmap) {
@@ -78,6 +97,12 @@ public class PicturePreviewActivity extends Activity {
             }
         });
 
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mBitmap = null;
     }
 
     private static float getApproximateFileMegabytes(Bitmap bitmap) {
